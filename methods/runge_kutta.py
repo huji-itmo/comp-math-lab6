@@ -1,73 +1,86 @@
-def euler_method(f, initial_x, initial_y, target_x, initial_step_count, tolerance):
-    print("Euler Method\n")
-    max_doubling_iterations = 100
-    method_order = 1
-    doubling_count = 0
+def runge_kutta(f, initial_x, initial_y, target_x, initial_steps, epsilon):
+    print("Fourth-order Runge-Kutta method with adaptive step size: \n")
+    start_x = initial_x
+    start_y = initial_y
+    max_iterations = 10
+    order = 4
+
+    original_step_count = initial_steps
+    iteration_count = 0
     error_estimate = float("inf")
 
-    final_y_history = []
+    solution_history = []
 
-    while error_estimate >= tolerance and doubling_count < max_doubling_iterations:
+    while error_estimate >= epsilon and iteration_count < max_iterations:
+        step_size = (target_x - initial_x) / initial_steps
         x_values = [initial_x]
         y_values = [initial_y]
 
-        step_size = (target_x - initial_x) / initial_step_count
-        for _ in range(initial_step_count):
+        for _ in range(initial_steps):
             current_x = x_values[-1]
             current_y = y_values[-1]
-            next_y = current_y + step_size * f(current_x, current_y)
+
+            k1 = step_size * f(current_x, current_y)
+            k2 = step_size * f(current_x + step_size / 2, current_y + k1 / 2)
+            k3 = step_size * f(current_x + step_size / 2, current_y + k2 / 2)
+            k4 = step_size * f(current_x + step_size, current_y + k3)
+
+            next_y = current_y + (k1 + 2 * k2 + 2 * k3 + k4) / 6
             next_x = current_x + step_size
+
             y_values.append(next_y)
             x_values.append(next_x)
-        final_y_history.append(y_values[-1])
 
-        if len(final_y_history) >= 2:
-            y_coarse, y_fine = final_y_history[-2:]
-            error_estimate = abs(y_coarse - y_fine) / (2**method_order - 1)
+        solution_history.append(y_values[-1])
 
-            if error_estimate >= tolerance:
+        if len(solution_history) >= 2:
+            last_approximation = solution_history[-2]
+            current_approximation = solution_history[-1]
+            error_estimate = abs(last_approximation - current_approximation) / (
+                2**order - 1
+            )
+
+            if error_estimate >= epsilon:
                 print(
-                    f"Accuracy not achieved at step_count={initial_step_count}: R = {error_estimate:.2e} >= ε ({tolerance})"
+                    f"Precision not achieved at step_count={initial_steps}: EST = {error_estimate:.2e} ≥ ε ({epsilon})"
                 )
-                print(
-                    f"Doubling step count: {initial_step_count} → {2*initial_step_count}"
-                )
+                print(f"Doubling step count: n = {initial_steps} → {2*initial_steps}")
             else:
                 break
         else:
-            print(f"Doubling step count: {initial_step_count} → {2*initial_step_count}")
-        initial_step_count *= 2
-        doubling_count += 1
+            print(f"Doubling step count: n = {initial_steps} → {2*initial_steps}")
+
+        initial_steps *= 2
+        iteration_count += 1
 
     print("\n" + "=" * 80)
     print("FINAL RESULTS")
-    print(f"Final step count: n = {initial_step_count}")
-    print(f"Number of doublings: {doubling_count}")
+    print(f"Initial step count: n₀ = {original_step_count}")
+    print(f"Final step count: n = {initial_steps}")
+    print(f"Step doubling iterations: {iteration_count}")
 
-    if error_estimate < tolerance:
-        print(f"Accuracy achieved: R = {error_estimate:.2e} < ε = {tolerance}")
+    if error_estimate < epsilon:
+        print(f"Precision achieved: EST = {error_estimate:.2e} < ε = {epsilon}")
     else:
-        print(f"Doubling limit reached: R = {error_estimate:.2e} >= ε = {tolerance}")
+        print(f"Maximum iterations reached: EST = {error_estimate:.2e} ≥ ε = {epsilon}")
 
-    print("\nSolution:")
-    if len(x_values) >= 100:
-        print("\nResults not displayed in table (too many points)")
-        print(f"Point count: {len(x_values)} > 100")
-        print("\nKey points:")
-        print("x\t\tApproximate y")
-        print("-" * 80)
-        print(f"{x_values[0]:.6f}\t{y_values[0]:.12f}")
-
-        mid_index = len(x_values) // 2
-        print(f"{x_values[mid_index]:.6f}\t{y_values[mid_index]:.12f}")
-
-        print(f"{x_values[-1]:.6f}\t{y_values[-1]:.12f}")
-        print("... (intermediate points omitted)")
-
-    else:
-        print("x\t\tApproximate y")
+    if len(x_values) <= 100:
+        print("\nSolution table:")
+        print("x_value\t\tApproximate_y")
         print("-" * 80)
         for i in range(len(x_values)):
             print(f"{x_values[i]:.6f}\t{y_values[i]:.12f}")
+    else:
+        print("\nResults omitted in tabular form (exceeds 100 points)")
+        print(f"Total points: {len(x_values)} > 100")
+
+        print("\nKey solution points:")
+        print("x_value\t\tApproximate_y")
+        print("-" * 80)
+        print(f"{x_values[0]:.6f}\t{y_values[0]:.12f}")
+        mid_index = len(x_values) // 2
+        print(f"{x_values[mid_index]:.6f}\t{y_values[mid_index]:.12f}")
+        print(f"{x_values[-1]:.6f}\t{y_values[-1]:.12f}")
+        print("... (intermediate points omitted)")
 
     return x_values, y_values
