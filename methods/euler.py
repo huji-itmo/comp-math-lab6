@@ -1,80 +1,75 @@
-def euler_method(f, x0, y0, xn, n, epsilon):
-    print("\nEuler's Numerical Scheme\n")
-    x0_init = x0
-    y0_init = y0
-    max_iterations = 10
-    p = 1
-    original_n = n
-    iteration_count = 0
-    R = float("inf")
+def euler_method(f, initial_x, initial_y, target_x, initial_step_count, tolerance):
+    print("Euler Method\n")
+    MAX_DOUBLING_ATTEMPTS = 100
+    METHOD_ORDER = 1
+    doubling_count = 0
+    error_estimate = float("inf")
 
-    while R >= epsilon and iteration_count < max_iterations:
-        h = (xn - x0) / n
-        x_arr = [x0]
-        y_arr = [y0]
+    solution_history = []
 
-        for _ in range(n):
-            xi = x_arr[-1]
-            yi = y_arr[-1]
-            next_y = yi + h * f(xi, yi)
-            next_x = xi + h
-            y_arr.append(next_y)
-            x_arr.append(next_x)
+    while error_estimate >= tolerance and doubling_count < MAX_DOUBLING_ATTEMPTS:
+        x_coordinates = [initial_x]
+        y_values = [initial_y]
 
-        n2 = 2 * n
-        h2 = (xn - x0) / n2
-        x_arr2 = [x0]
-        y_arr2 = [y0]
+        step_size = (target_x - initial_x) / initial_step_count
+        for _ in range(initial_step_count):
+            current_x = x_coordinates[-1]
+            current_y = y_values[-1]
+            next_y = current_y + step_size * f(current_x, current_y)
+            next_x = current_x + step_size
+            y_values.append(next_y)
+            x_coordinates.append(next_x)
+        solution_history.append(y_values[-1])
 
-        for _ in range(n2):
-            xi = x_arr2[-1]
-            yi = y_arr2[-1]
-            next_y = yi + h2 * f(xi, yi)
-            next_x = xi + h2
-            y_arr2.append(next_y)
-            x_arr2.append(next_x)
+        if len(solution_history) >= 2:
+            previous_solution = solution_history[-2]
+            current_solution = solution_history[-1]
+            error_estimate = abs(current_solution - previous_solution) / (
+                2**METHOD_ORDER - 1
+            )
 
-        yh = y_arr[-1]
-        yh2 = y_arr2[-1]
-        R = abs(yh - yh2) / (2**p - 1)
+            if error_estimate >= tolerance:
+                print(
+                    f"Accuracy not achieved with n={initial_step_count}: R = {error_estimate:.2e} >= ε ({tolerance})"
+                )
+                print(
+                    f"Doubling step count: {initial_step_count} → {2*initial_step_count}"
+                )
+            else:
+                break
+        else:
+            print(f"Doubling step count: {initial_step_count} → {2*initial_step_count}")
+        initial_step_count *= 2
+        doubling_count += 1
 
-        if R >= epsilon:
-            print(f"Precision not met with n={n}: |R| = {R:.2e} >= ε = {epsilon}")
-            print(f"Increasing step count: n = {n} → {2*n}")
-            n *= 2
-            iteration_count += 1
+    print("\n" + "=" * 80)
+    print("FINAL RESULTS")
+    print(f"Final step count: n = {initial_step_count}")
+    print(f"Number of doublings: {doubling_count}")
 
-    print("\n" + "═" * 80)
-    print("FINAL OUTCOME")
-    print(f"Final step count: n = {n}")
-    print(f"Step doubling operations: {iteration_count}")
-
-    if R < epsilon:
-        print(f"Required precision achieved: |R| = {R:.2e} < ε = {epsilon}")
+    if error_estimate < tolerance:
+        print(f"Accuracy achieved: R = {error_estimate:.2e} < ε = {tolerance}")
     else:
-        print(f"Doubling limit reached: |R| = {R:.2e} >= ε = {epsilon}")
+        print(f"Doubling limit reached: R = {error_estimate:.2e} >= ε = {tolerance}")
 
-    print("\nComputation summary:")
-    if len(x_arr) >= 100:
-        print("Solution overview (full table omitted due to size)")
-        print(f"Final point → x: {x_arr[-1]:.6f}, y: {y_arr[-1]:.12f}\n")
+    print("\nSolution:")
+    if len(x_coordinates) >= 100:
+        print("\nResults not displayed in table (too many points)")
+        print(f"Point count: {len(x_coordinates)} > 100")
+        print("\nKey points:")
+        print("x-coordinate\tApproximate y-value")
+        print("-" * 80)
+        print(f"{x_coordinates[0]:.6f}\t{y_values[0]:.12f}")
 
+        mid_index = len(x_coordinates) // 2
+        print(f"{x_coordinates[mid_index]:.6f}\t{y_values[mid_index]:.12f}")
+
+        print(f"{x_coordinates[-1]:.6f}\t{y_values[-1]:.12f}")
+        print("... (intermediate points omitted)")
     else:
-        print("Detailed results not displayed (exceeds 100 points)")
-        print(f"Total points computed: {len(x_arr)}")
+        print("x-coordinate\tApproximate y-value")
+        print("-" * 80)
+        for i in range(len(x_coordinates)):
+            print(f"{x_coordinates[i]:.6f}\t{y_values[i]:.12f}")
 
-        print("\nCritical data points:")
-        print("x_coord\t\tApproximated_y")
-        print("----------------------------------------")
-
-        print(f"{x_arr[0]:.6f}\t{y_arr[0]:.12f}")
-
-        if len(x_arr) > 2:
-            mid_index = len(x_arr) // 2
-            print(f"{x_arr[mid_index]:.6f}\t{y_arr[mid_index]:.12f}")
-
-        print(f"{x_arr[-1]:.6f}\t{y_arr[-1]:.12f}")
-        if len(x_arr) > 3:
-            print("... additional points not shown ...")
-
-    return x_arr, y_arr
+    return x_coordinates, y_values

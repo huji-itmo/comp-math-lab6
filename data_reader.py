@@ -2,14 +2,16 @@ import math
 
 
 def choose_odu():
-    print("Choose ODE:")
+    import math
+
+    print("Выберите ОДУ:")
     print("1. y' = x + y")
     print("2. y' = sin(x) - y")
     print("3. y' = y / x")
 
     while True:
         try:
-            choice = int(input("> Select ODE [1/2/3]: "))
+            choice = int(input("> Выберите ОДУ [1/2/3]: "))
             if choice == 1:
                 f = lambda x, y: x + y
                 exact_y = lambda x, x0, y0: math.exp(x - x0) * (y0 + x0 + 1) - x - 1
@@ -28,20 +30,20 @@ def choose_odu():
                 exact_y = lambda x, x0, y0: y0 * math.exp(math.log(x) - math.log(x0))
                 return f, exact_y
             else:
-                print("Invalid input! Please try again")
+                print("Некорректный ввод! Попробуйте снова")
         except ValueError:
-            print("Invalid input! Enter a number")
+            print("Некорректный ввод! Введите число")
 
 
 def read_data():
     while True:
         try:
-            x0 = float(input("Enter first interval element x0: "))
-            xn = float(input("Enter last interval element xn: "))
-            n = int(input("Enter number of elements in interval n: "))
-            y0 = float(input("Enter initial value y0: "))
-            epsilon = float(input("Enter precision epsilon: "))
+            x0 = float(input("Введите первый элемент интервала x0: "))
+            xn = float(input("Введите последний элемент интервала xn: "))
+            n = int(input("Введите количество элементов в интервале n: "))
+            y0 = float(input("Введите y0: "))
+            epsilon = float(input("Введите точность epsilon: "))
             break
         except:
-            print("Invalid input, please try again!")
+            print("Некорректный ввод, попробуем еще раз!")
     return x0, xn, n, y0, epsilon

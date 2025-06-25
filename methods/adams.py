@@ -1,91 +1,111 @@
-def adams_method(f, x0, y0, xn, n, epsilon, exact_solution):
-    print("Adams-Bashforth-Moulton predictor-corrector method:")
+def adams_method(
+    f, initial_x, initial_y, target_x, num_steps, tolerance, exact_solution
+):
+    print("Adams method:")
 
-    h = (xn - x0) / n
-    x_points = [x0]
-    y_points = [y0]
-    f_values = []
+    step_size = (target_x - initial_x) / num_steps
+    x_values = [initial_x]
+    y_values = [initial_y]
+    derivative_values = []
 
-    initial_x = x0
-    initial_y = y0
+    initial_condition_x = initial_x
+    initial_condition_y = initial_y
 
-    # Initial steps using Runge-Kutta 4th order
-    for i in range(min(3, n)):
-        xi = x_points[-1]
-        yi = y_points[-1]
+    # Calculate first 4 points using Runge-Kutta
+    for i in range(min(3, num_steps)):
+        current_x = x_values[-1]
+        current_y = y_values[-1]
 
-        k1 = h * f(xi, yi)
-        k2 = h * f(xi + h / 2, yi + k1 / 2)
-        k3 = h * f(xi + h / 2, yi + k2 / 2)
-        k4 = h * f(xi + h, yi + k3)
+        k1 = step_size * f(current_x, current_y)
+        k2 = step_size * f(current_x + step_size / 2, current_y + k1 / 2)
+        k3 = step_size * f(current_x + step_size / 2, current_y + k2 / 2)
+        k4 = step_size * f(current_x + step_size, current_y + k3)
 
-        next_y = yi + (k1 + 2 * k2 + 2 * k3 + k4) / 6
-        next_x = xi + h
+        next_y = current_y + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        next_x = current_x + step_size
 
-        x_points.append(next_x)
-        y_points.append(next_y)
+        x_values.append(next_x)
+        y_values.append(next_y)
 
-    if n <= 3:
-        print("\nAdams method requires ≥4 points. Showing Runge-Kutta results.")
-        display_results(
-            x_points, y_points, exact_solution, initial_x, initial_y, epsilon
+    if num_steps <= 3:
+        print(
+            "\nAdams method requires at least 4 points. Displaying Runge-Kutta results."
         )
-        return x_points, y_points
+        print_results(
+            x_values,
+            y_values,
+            exact_solution,
+            initial_condition_x,
+            initial_condition_y,
+            tolerance,
+        )
+        return x_values, y_values
 
-    # Store function values for Adams
+    # Store derivatives for initial points
     for i in range(4):
-        f_values.append(f(x_points[i], y_points[i]))
+        derivative_values.append(f(x_values[i], y_values[i]))
 
-    # Adams predictor-corrector iterations
-    for i in range(3, n):
+    # Adams-Bashforth-Moulton predictor-corrector
+    for i in range(3, num_steps):
         # Predictor (Adams-Bashforth)
-        y_pred = y_points[i] + h / 24 * (
-            55 * f_values[i]
-            - 59 * f_values[i - 1]
-            + 37 * f_values[i - 2]
-            - 9 * f_values[i - 3]
+        y_predicted = y_values[i] + step_size / 24 * (
+            55 * derivative_values[i]
+            - 59 * derivative_values[i - 1]
+            + 37 * derivative_values[i - 2]
+            - 9 * derivative_values[i - 3]
         )
-        x_next = x_points[i] + h
+        next_x = x_values[i] + step_size
+
+        f_predicted = f(next_x, y_predicted)
 
         # Corrector (Adams-Moulton)
-        f_pred = f(x_next, y_pred)
-        y_corrected = y_points[i] + h / 24 * (
-            9 * f_pred + 19 * f_values[i] - 5 * f_values[i - 1] + f_values[i - 2]
+        y_corrected = y_values[i] + step_size / 24 * (
+            9 * f_predicted
+            + 19 * derivative_values[i]
+            - 5 * derivative_values[i - 1]
+            + derivative_values[i - 2]
         )
 
-        x_points.append(x_next)
-        y_points.append(y_corrected)
-        f_values.append(f(x_next, y_corrected))
+        x_values.append(next_x)
+        y_values.append(y_corrected)
+        derivative_values.append(f(next_x, y_corrected))
 
-    print("\nAdams method results (predictor-corrector):")
-    print_results(x_points, y_points, exact_solution, initial_x, initial_y, epsilon)
+    print("\nAdams predictor-corrector results:")
+    print("x\t\tApproximate y\t\tExact y\t\t\tAbsolute Error")
+    for i in range(len(x_values)):
+        exact = exact_solution(x_values[i], initial_condition_x, initial_condition_y)
+        error = abs(y_values[i] - exact)
+        print(f"{x_values[i]:.6f}\t{y_values[i]:.12f}\t{exact:.12f}\t{error:.2e}")
 
-    return x_points, y_points
-
-
-def display_results(x_points, y_points, exact_solution, x0, y0, epsilon):
-    print("x\t\tApproximate y\t\tExact solution\t\tAbsolute error")
-    for i in range(len(x_points)):
-        exact = exact_solution(x_points[i], x0, y0)
-        error = abs(y_points[i] - exact)
-        print(f"{x_points[i]:.6f}\t{y_points[i]:.12f}\t{exact:.12f}\t{error:.2e}")
-
-    final_error = abs(y_points[-1] - exact_solution(x_points[-1], x0, y0))
-    if final_error < epsilon:
-        print(f"\nAccuracy achieved: |Δy| = {final_error:.2e} < ε = {epsilon}")
+    final_error = abs(
+        y_values[-1]
+        - exact_solution(target_x, initial_condition_x, initial_condition_y)
+    )
+    if final_error < tolerance:
+        print(
+            f"\nAccuracy achieved: |approx_y - exact_y| = {final_error:.2e} < ε = {tolerance}"
+        )
     else:
-        print(f"\nAccuracy NOT achieved: |Δy| = {final_error:.2e} ≥ ε = {epsilon}")
+        print(
+            f"\nAccuracy NOT achieved: |approx_y - exact_y| = {final_error:.2e} >= ε = {tolerance}"
+        )
+
+    return x_values, y_values
 
 
-def print_results(x_points, y_points, exact_solution, x0, y0, epsilon):
-    print("x\t\tApproximate y\t\tExact solution\t\tAbsolute error")
-    for i in range(len(x_points)):
-        exact = exact_solution(x_points[i], x0, y0)
-        error = abs(y_points[i] - exact)
-        print(f"{x_points[i]:.6f}\t{y_points[i]:.12f}\t{exact:.12f}\t{error:.2e}")
+def print_results(x_values, y_values, exact_solution, initial_x, initial_y, tolerance):
+    print("x\t\tApproximate y\t\tExact y\t\t\tAbsolute Error")
+    for i in range(len(x_values)):
+        exact = exact_solution(x_values[i], initial_x, initial_y)
+        error = abs(y_values[i] - exact)
+        print(f"{x_values[i]:.6f}\t{y_values[i]:.12f}\t{exact:.12f}\t{error:.2e}")
 
-    final_error = abs(y_points[-1] - exact_solution(x_points[-1], x0, y0))
-    if final_error < epsilon:
-        print(f"\nAccuracy achieved: |Δy| = {final_error:.2e} < ε = {epsilon}")
+    final_error = abs(y_values[-1] - exact_solution(x_values[-1], initial_x, initial_y))
+    if final_error < tolerance:
+        print(
+            f"\nAccuracy achieved: |approx_y - exact_y| = {final_error:.2e} < ε = {tolerance}"
+        )
     else:
-        print(f"\nAccuracy NOT achieved: |Δy| = {final_error:.2e} ≥ ε = {epsilon}")
+        print(
+            f"\nAccuracy NOT achieved: |approx_y - exact_y| = {final_error:.2e} >= ε = {tolerance}"
+        )
