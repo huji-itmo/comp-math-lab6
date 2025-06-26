@@ -1,5 +1,16 @@
-def runge_kutt(f, initial_x, initial_y, target_x, initial_steps, epsilon):
-    print("Fourth-order Runge-Kutta method with adaptive step size: \n")
+from typing import Callable
+
+
+def runge_kutt(
+    f,
+    initial_x,
+    initial_y,
+    target_x,
+    initial_steps,
+    epsilon,
+    exact_solution: Callable[[float, float, float], float],
+):
+    print("Fourth-order Runge-Kutta method \n")
     start_x = initial_x
     start_y = initial_y
     max_iterations = 10
@@ -82,5 +93,12 @@ def runge_kutt(f, initial_x, initial_y, target_x, initial_steps, epsilon):
         print(f"{x_values[mid_index]:.6f}\t{y_values[mid_index]:.12f}")
         print(f"{x_values[-1]:.6f}\t{y_values[-1]:.12f}")
         print("... (intermediate points omitted)")
+
+    # Compute exact solutions at each grid point
+    exact_ys = [exact_solution(x, initial_x, initial_y) for x in x_values]
+    # Calculate absolute errors
+    errors = [abs(exact_y - y) for exact_y, y in zip(exact_ys, y_values)]
+
+    print(f"max_i |y - y_true| = {max(errors)}")
 
     return x_values, y_values

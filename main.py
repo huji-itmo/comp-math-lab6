@@ -7,10 +7,6 @@ from plot import plot_graphic
 
 
 def select_ode():
-    """
-    Allows user to select an ordinary differential equation (ODE) from predefined options.
-    Returns the selected ODE function and its exact solution function.
-    """
     print("Select an Ordinary Differential Equation (ODE):")
     print("1. y' = x + y")
     print("2. y' = sin(x) - y")
@@ -51,19 +47,22 @@ def select_ode():
 
 
 def read_parameters(ode_selection):
-    """
-    Reads and validates numerical parameters for the ODE solver.
-    Returns initial conditions, interval, and tolerance.
-    """
     while True:
         try:
             start_x = float(input("Enter interval start point x0: "))
             end_x = float(input("Enter interval end point xn: "))
+            # Validate non-zero interval length
+            if start_x == end_x:
+                print(
+                    "Error: Interval length is zero! Start and end points must differ."
+                )
+                continue  # Restart the loop to get new inputs
+
             step_count = int(input("Enter initial number of steps: "))
             initial_y = float(input("Enter initial condition y0: "))
             tolerance = float(input("Enter solution tolerance (epsilon): "))
 
-            # Validate parameters
+            # Validate other parameters
             if step_count <= 0:
                 print("Step count must be positive!")
                 continue
@@ -90,10 +89,10 @@ def main():
 
     # Call solvers (these need to be defined)
     x_values_runge, y_values_runge = runge_kutt(
-        f, start_x, initial_y, end_x, step_count, tolerance
+        f, start_x, initial_y, end_x, step_count, tolerance, exact_solution
     )
     x_values_euler, y_values_euler = euler_method(
-        f, start_x, initial_y, end_x, step_count, tolerance
+        f, start_x, initial_y, end_x, step_count, tolerance, exact_solution
     )
     x_values_adams, y_values_adams = adams_method(
         f, start_x, initial_y, end_x, step_count, tolerance, exact_solution

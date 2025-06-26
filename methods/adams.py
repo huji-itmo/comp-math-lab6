@@ -45,9 +45,9 @@ def adams_method(
     for i in range(4):
         derivative_values.append(f(x_values[i], y_values[i]))
 
-    # Adams-Bashforth-Moulton predictor-corrector
+    # Adams predictor-corrector
     for i in range(3, num_steps):
-        # Predictor (Adams-Bashforth)
+        # Predictor
         y_predicted = y_values[i] + step_size / 24 * (
             55 * derivative_values[i]
             - 59 * derivative_values[i - 1]
@@ -58,7 +58,7 @@ def adams_method(
 
         f_predicted = f(next_x, y_predicted)
 
-        # Corrector (Adams-Moulton)
+        # Corrector
         y_corrected = y_values[i] + step_size / 24 * (
             9 * f_predicted
             + 19 * derivative_values[i]

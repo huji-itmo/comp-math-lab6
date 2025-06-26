@@ -1,4 +1,15 @@
-def euler_method(f, initial_x, initial_y, target_x, initial_step_count, tolerance):
+from typing import Callable
+
+
+def euler_method(
+    f,
+    initial_x,
+    initial_y,
+    target_x,
+    initial_step_count,
+    tolerance,
+    exact_solution: Callable[[float, float, float], float],  # x, x_0, y_0
+):
     print("Euler Method\n")
     MAX_DOUBLING_ATTEMPTS = 100
     METHOD_ORDER = 1
@@ -71,5 +82,12 @@ def euler_method(f, initial_x, initial_y, target_x, initial_step_count, toleranc
         print("-" * 80)
         for i in range(len(x_coordinates)):
             print(f"{x_coordinates[i]:.6f}\t{y_values[i]:.12f}")
+
+    # Compute exact solutions at each grid point
+    exact_ys = [exact_solution(x, initial_x, initial_y) for x in x_coordinates]
+    # Calculate absolute errors
+    errors = [abs(exact_y - y) for exact_y, y in zip(exact_ys, y_values)]
+
+    print(f"max_i |y - y_true| = {max(errors)}")
 
     return x_coordinates, y_values
