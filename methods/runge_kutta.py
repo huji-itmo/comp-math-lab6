@@ -1,4 +1,4 @@
-def runge_kutta(f, initial_x, initial_y, target_x, initial_steps, epsilon):
+def runge_kutt(f, initial_x, initial_y, target_x, initial_steps, epsilon):
     print("Fourth-order Runge-Kutta method with adaptive step size: \n")
     start_x = initial_x
     start_y = initial_y

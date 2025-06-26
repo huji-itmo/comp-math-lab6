@@ -2,7 +2,8 @@ import math
 
 from methods.adams import adams_method
 from methods.euler import euler_method
-from methods.runge_kutta import runge_kutta
+from methods.runge_kutta import runge_kutt
+from plot import plot_graphic
 
 
 def select_ode():
@@ -88,9 +89,25 @@ def main():
     start_x, end_x, step_count, initial_y, tolerance = read_parameters(ode_selection)
 
     # Call solvers (these need to be defined)
-    runge_kutta(f, start_x, initial_y, end_x, step_count, tolerance)
-    euler_method(f, start_x, initial_y, end_x, step_count, tolerance)
-    adams_method(f, start_x, initial_y, end_x, step_count, tolerance, exact_solution)
+    x_values_runge, y_values_runge = runge_kutt(
+        f, start_x, initial_y, end_x, step_count, tolerance
+    )
+    x_values_euler, y_values_euler = euler_method(
+        f, start_x, initial_y, end_x, step_count, tolerance
+    )
+    x_values_adams, y_values_adams = adams_method(
+        f, start_x, initial_y, end_x, step_count, tolerance, exact_solution
+    )
+
+    plot_graphic(
+        x_values_runge, y_values_runge, exact_solution, start_x, initial_y, "runge_kutt"
+    )
+    plot_graphic(
+        x_values_euler, y_values_euler, exact_solution, start_x, initial_y, "euler"
+    )
+    plot_graphic(
+        x_values_adams, y_values_adams, exact_solution, start_x, initial_y, "adams"
+    )
 
 
 if __name__ == "__main__":
