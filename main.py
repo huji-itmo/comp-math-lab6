@@ -69,7 +69,7 @@ def read_parameters(ode_selection):
             if tolerance <= 0:
                 print("Tolerance must be positive!")
                 continue
-            if start_x == 0 and ode_selection == 3:
+            if start_x < 0 and end_x > 0 and ode_selection == 3:
                 print("Error: x=0 is not allowed for ODE 3 (division by zero)")
                 continue
 
